@@ -69,6 +69,7 @@ pkg_check_modules(DBUS dbus-1 REQUIRED)
 pkg_check_modules(LXC lxc REQUIRED)
 pkg_check_modules(PROPERTIES_CPP properties-cpp REQUIRED)
 pkg_check_modules(LIBSYSTEMD libsystemd REQUIRED)
+pkg_check_modules(LIBCAP libcap REQUIRED)
 
 message(STATUS "LXC version: ${LXC_VERSION}")
 if (${LXC_VERSION} VERSION_LESS 3.0)
@@ -90,6 +91,10 @@ option(ENABLE_MIR "Enable mir support" OFF)
 if (ENABLE_MIR)
   pkg_check_modules(MIRCLIENT mirclient REQUIRED)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMIR_SUPPORT")
+endif()
+
+if (NOT BINDERFS_PATH)
+  set(BINDERFS_PATH "/dev/binderfs")
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DEGL_NO_X11")

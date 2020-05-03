@@ -3,7 +3,7 @@
 To install Anbox your system need to support [snaps](https://snapcraft.io). We
 do not officially support any other distribution method of Anbox at the moment
 but there are community made packages for various distributions (e.g. Arch Linux).
-However please keep in mind that the Anbox project can give not support them
+However please keep in mind that the Anbox project can not give support to them
 and its solely in the responsibility of the community packager to keep up with
 upstream development and update the packaging to any new changes. Please feel
 free to report still any bugs you encounter as they may not be related to the
@@ -40,6 +40,10 @@ In order to add the PPA to your Ubuntu system please run the following commands:
  $ sudo apt update
  $ sudo apt install anbox-modules-dkms
 ```
+> In case `add-apt-repository` is missing, install it via:
+> ```
+> sudo apt install software-properties-common
+> ```
 
 These will add the PPA to your system and install the `anbox-modules-dkms`
 package which contains the ashmem and binder kernel modules. They will be
