@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Simon Fels <morphis@gravedo.de>
+ * Copyright (C) 2020 Tomasz Grobelny <tomasz@grobelny.net>
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 3, as published
@@ -15,31 +15,15 @@
  *
  */
 
-#ifndef ANBOX_CMDS_LAUNCH_H_
-#define ANBOX_CMDS_LAUNCH_H_
-
-#include <functional>
-#include <iostream>
-#include <memory>
+#include "anbox/dbus/sensors_server.h"
 
 #include "anbox/android/intent.h"
-#include "anbox/wm/stack.h"
-#include "anbox/cli.h"
+#include "anbox/logger.h"
 
-namespace anbox {
-namespace cmds {
-class Launch : public cli::CommandWithFlagsAndAction {
- public:
-  Launch();
+double SensorsServer::Temperature() {
+  return impl_->temperature;
+}
 
- private:
-  bool launch_session_manager();
-
-  android::Intent intent_;
-  wm::Stack::Id stack_ = wm::Stack::Id::Default;
-  bool use_system_dbus_ = false;
-};
-}  // namespace cmds
-}  // namespace anbox
-
-#endif
+void SensorsServer::Temperature(const double& value) {
+  impl_->temperature = value;
+}

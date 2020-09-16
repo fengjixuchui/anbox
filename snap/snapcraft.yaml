@@ -1,11 +1,4 @@
 name: anbox
-version: 4
-version-script: |
-  if [ "$SNAPCRAFT_GRADE" = "stable" ]; then
-    echo $SNAPCRAFT_PROJECT_VERSION
-  else
-    echo $SNAPCRAFT_PROJECT_VERSION-$(git rev-parse --short HEAD)
-  fi
 summary: Android in a Box
 description: |
   Runtime for Android applications which runs a full Android system
@@ -13,7 +6,9 @@ description: |
   separate the Android system fully from the host.
 confinement: devmode
 grade: devel
+base: core20
 architectures: [amd64]
+adopt-info: anbox
 
 slots:
   dbus-session-slot:
@@ -29,7 +24,7 @@ plugs:
 
 apps:
   anbox:
-    command: desktop-launch $SNAP/bin/anbox-wrapper.sh
+    command: bin/desktop-launch $SNAP/bin/anbox-wrapper.sh
     slots:
       - dbus-session-slot
     plugs:
@@ -58,7 +53,7 @@ apps:
   shell:
     command: bin/anbox-shell.sh
   android-settings:
-    command: desktop-launch $SNAP/bin/app-android-settings.sh
+    command: bin/desktop-launch $SNAP/bin/app-android-settings.sh
     desktop: desktop/android-settings.desktop
     slots:
       - dbus-session-slot
@@ -75,7 +70,7 @@ apps:
       - desktop
 
   appmgr:
-    command: desktop-launch $SNAP/bin/app-appmgr.sh
+    command: bin/desktop-launch $SNAP/bin/app-appmgr.sh
     desktop: desktop/appmgr.desktop
     slots:
       - dbus-session-slot
@@ -131,13 +126,22 @@ parts:
         wget http://build.anbox.io/android-images/$IMAGE_PATH/$IMAGE_NAME
 
         echo "$IMAGE_HASH $IMAGE_NAME" > image-hash
-        sha256sum -c image-hash
+        sha256sum -c image-hash || exit 1
 
         mv $IMAGE_NAME $SNAPCRAFT_PART_INSTALL/android.img
 
       fi
     prime:
       - android.img
+
+  desktop-glib-only:
+    source: https://github.com/ubuntu/snapcraft-desktop-helpers.git
+    source-subdir: glib-only
+    plugin: make
+    build-packages:
+      - libglib2.0-dev
+    stage-packages:
+      - libglib2.0-bin
 
   apparmor:
     plugin: nil
@@ -162,7 +166,7 @@ parts:
       - libseccomp-dev
       - pkg-config
     plugin: autotools
-    configflags:
+    autotools-configure-parameters:
       - --disable-selinux
       - --disable-python
       - --disable-lua
@@ -177,6 +181,7 @@ parts:
       - --enable-capabilities
       - --with-rootfs-path=/var/snap/anbox/common/lxc/
       - --libexecdir=/snap/anbox/current/libexec/
+      - --prefix=/usr/
     override-build: |
       set -ex
       git config user.email "buildbot@anbox.io"
@@ -190,28 +195,21 @@ parts:
     organize:
       snap/anbox/current/libexec: libexec
     prime:
-      - lib/liblxc.so.1
-      - lib/liblxc.so.1.4.0
+      - usr/lib/liblxc.so.1
+      - usr/lib/liblxc.so.1.4.0
       - libexec/lxc/lxc-monitord
-      - bin/lxc-start
-      - bin/lxc-stop
-      - bin/lxc-info
-      - bin/lxc-attach
-      - bin/lxc-ls
-      - bin/lxc-top
+      - usr/bin/lxc-start
+      - usr/bin/lxc-stop
+      - usr/bin/lxc-info
+      - usr/bin/lxc-attach
+      - usr/bin/lxc-ls
+      - usr/bin/lxc-top
 
   swiftshader:
     plugin: cmake
     source: https://swiftshader.googlesource.com/SwiftShader
     source-type: git
     source-commit: b6e8c3f0f4830887d69ba765a922ac3c40e81dd9
-    override-build: |
-      git submodule update --init
-      snapcraftctl build
-    artifacts:
-      - libEGL.so
-      - libGLES_CM.so
-      - libGLESv2.so
     organize:
       libEGL.so: lib/anbox/swiftshader/libEGL.so
       libGLES_CM.so: lib/anbox/swiftshader/libGLES_CM.so
@@ -251,7 +249,8 @@ parts:
       - lxc
       - desktop-glib-only
     source: .
-    configflags:
+    source-type: git
+    cmake-parameters:
       # FIXME: Anbox currently has some paths with hard coded prefixes. Once
       # that is fixed we can avoid using a prefix here.
       - -DCMAKE_INSTALL_PREFIX:PATH=/usr
@@ -265,13 +264,13 @@ parts:
       - cmake
       - cmake-data
       - cmake-extras
-      - debhelper
       - dbus
+      - debhelper
       - google-mock
       - libboost-dev
       - libboost-filesystem-dev
-      - libboost-log-dev
       - libboost-iostreams-dev
+      - libboost-log-dev
       - libboost-program-options-dev
       - libboost-system-dev
       - libboost-test-dev
@@ -279,24 +278,32 @@ parts:
       - libcap-dev
       - libdbus-1-dev
       - libegl1-mesa-dev
+      - libexpat1-dev
       - libgles2-mesa-dev
+      - libglm-dev
+      - libgmock-dev
       - libgtest-dev
-      - libprotobuf-dev
       - libproperties-cpp-dev
+      - libprotobuf-dev
       - libsdl2-dev
       - libsdl2-image-dev
       - libsystemd-dev
+      - libx11-xcb-dev
       - pkg-config
       - protobuf-compiler
+      - python2
     stage-packages:
-      - libboost-log1.58.0
-      - libboost-iostreams1.58.0
-      - libboost-program-options1.58.0
-      - libboost-thread1.58.0
+      - libboost-filesystem1.71.0
+      - libboost-iostreams1.71.0
+      - libboost-log1.71.0
+      - libboost-program-options1.71.0
+      - libboost-system1.71.0
+      - libboost-thread1.71.0
       - libdb5.3
       - libegl1-mesa
-      - libgles2-mesa
       - libgl1-mesa-glx
+      - libgles2-mesa
+      - libprotobuf-lite17
       - libsdl2-2.0-0
       - libsdl2-gfx-1.0-0
       - libsdl2-image-2.0-0
@@ -305,3 +312,10 @@ parts:
       - usr/bin/anbox
       - usr/share/anbox
       - usr/lib/*-linux-*/
+    override-build: |
+      rev=$(cd "$SNAPCRAFT_PART_SRC_WORK" ; git rev-parse --short HEAD)
+      snapcraftctl set-version 4+gitr"$rev"
+      # HACK: for some reason, snapcraft puts a copy of the source code
+      # in the build directory. Let's remove it so it doesn't conflict.
+      rm -rf *
+      snapcraftctl build

@@ -28,10 +28,11 @@ For more details have a look at the following documentation pages:
  * [The Android "qemud" multiplexing daemon](https://android.googlesource.com/platform/external/qemu/+/emu-master-dev/android/docs/ANDROID-QEMUD.TXT)
  * [Android qemud services](https://android.googlesource.com/platform/external/qemu/+/emu-master-dev/android/docs/ANDROID-QEMUD-SERVICES.TXT)
 
-Anbox is currently suited for the desktop use case but can be used on
-mobile operating systems like Ubuntu Touch, Sailfish OS or Lune OS too.
-However as the mapping of Android applications is currently desktop specific
-this needs additional work to supported stacked window user interfaces too.
+Anbox is currently suited for the desktop use case but can be used on mobile
+operating systems like [Ubuntu Touch](https://ubuntu-touch.io/) or
+[postmarketOS](https://postmarketos.org)
+([installation instructions](https://wiki.postmarketos.org/wiki/Anbox)).
+However this is still a work in progress.
 
 The Android runtime environment ships with a minimal customized Android system
 image based on the [Android Open Source Project](https://source.android.com/).
@@ -45,15 +46,26 @@ See our [installation instructions](docs/install.md) for details.
 
 At the moment we officially support the following Linux distributions:
 
- * Ubuntu 16.04 (xenial)
  * Ubuntu 18.04 (bionic)
+ * Ubuntu 20.04 (focal)
 
 However all other distributions supporting snap packages should work as
 well as long as they provide the mandatory kernel modules (see kernel/).
 
 ## Install and Run Android Applications
 
-TBD
+You can install Android applications from the command line using adb.
+
+```sh
+adb install xyz.apk
+```
+
+The apk files you will sometimes find on the internet tend to only have arm
+support, and will therefore not work on x86\_64.
+
+You may want to install [F-Droid](https://f-droid.org/) to get applications
+graphically. Note that the Google Play Store will not work as is, because it
+relies on the proprietary Google Play Services, which are not installed.
 
 ## Build from source
 
@@ -75,8 +87,10 @@ system:
  * libboost-test
  * libboost-thread
  * libcap
+ * libexpat1-dev
  * libsystemd
  * mesa (libegl1, libgles2)
+ * libglm
  * libsdl2
  * libprotobuf
  * protobuf-compiler
@@ -90,7 +104,7 @@ command:
 $ sudo apt install build-essential cmake cmake-data debhelper dbus google-mock \
     libboost-dev libboost-filesystem-dev libboost-log-dev libboost-iostreams-dev \
     libboost-program-options-dev libboost-system-dev libboost-test-dev \
-    libboost-thread-dev libcap-dev libsystemd-dev libegl1-mesa-dev \
+    libboost-thread-dev libcap-dev libexpat1-dev libsystemd-dev libegl1-mesa-dev \
     libgles2-mesa-dev libglm-dev libgtest-dev liblxc1 \
     libproperties-cpp-dev libprotobuf-dev libsdl2-dev libsdl2-image-dev lxc-dev \
     pkg-config protobuf-compiler python-minimal
@@ -103,7 +117,7 @@ We recommend Ubuntu 18.04 (bionic) with **GCC 7.x** as your build environment.
 Afterwards you can build Anbox with
 
 ```
-$ git clone https://github.com/anbox/anbox.git
+$ git clone https://github.com/anbox/anbox.git --recurse-submodules
 $ cd anbox
 $ mkdir build
 $ cd build
